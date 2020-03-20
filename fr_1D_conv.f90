@@ -68,8 +68,8 @@ program main
     nCell = 10
     xmax  = 1.d0 ; xmin = 0.d0
     nSolPt = 4  
-    LastSTEP = 764*5
-    !LastSTEP = 764 !Gdg
+    !LastSTEP = 764*5
+    LastSTEP = 764 !Gdg
     !LastSTEP = 490 ! Gga
     !LastSTEP = 490*5
     !LastSTEP = 2
