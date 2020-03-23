@@ -62,23 +62,33 @@ program main
     real(8) :: val
     real(8) :: fupw
 
+    character*2 :: method
+
     ! -----------------------
     ! *** initial setting ***
     ! -----------------------
+
+    !method="DG"
+    method="GA"
+
+    if      (method.eq."DG") then ! DG method
+        !LastSTEP = 764     ! wave travels a distance of 10 periods
+        LastSTEP = 764*5   ! wave travels a distance of 50 periods
+        Cr       = 0.09162 ! Courant Number
+    else if (method.eq."GA") then
+        !LastSTEP = 490     ! wave travels a distance of 10 periods
+        LastSTEP = 490*5   ! wave travels a distance of 50 periods
+        Cr       = 0.14285 ! Courant Number
+    else
+        write(*,*) "Error: unknown method"
+        stop
+    end if
+
     nCell = 10
     xmax  = 1.d0 ; xmin = 0.d0
     nSolPt = 4  
-    !LastSTEP = 764*5
-    LastSTEP = 764 !Gdg
-    !LastSTEP = 490 ! Gga
-    !LastSTEP = 490*5
-    !LastSTEP = 2
-    !LastSTEP = 10   
-    !LastSTEP = 2000
-    outSTEP = 10
-    a = 1.0
-    Cr= 0.09162 ! Gdg
-    !Cr= 0.14285 ! Gga
+
+    a   = 1.0 ! convecting velocity
     nRK = 4
     allocate(cells(nCell))
 
@@ -133,27 +143,29 @@ program main
     allocate( G_dotL(0:nSolPt+1) )
     allocate( G_dotR(0:nSolPt+1) )
 
-    P4       (0:nSolPt+1) = (35*xl(0:nSolPt+1)**4 -30*xl(0:nSolPt+1)**2 +3)/8
-    P3_dot   (0:nSolPt+1) = 0.5*(15*xl(0:nSolPt-1)**2 -3)
-    P4_dot   (0:nSolPt+1) = 0.5*xl(0:nSolPt-1)*(35*xl(0:nSolPt-1)**2 -15)
-    P5_dot   (0:nSolPt+1) = (315*xl(0:nSolPt-1)**4 -210*xl(0:nSolPt-1)**2 +15)/8
-    G_dg3_dot(0:nSolPt+1) = (-1)**3*0.5*(P3_dot(0:nSolPt-1) - P2_dot(0:nSolPt-1))
-    G_dg4_dot(0:nSolPt+1) = (-1)**4*0.5*(P4_dot(0:nSolPt-1) - P3_dot(0:nSolPt-1))
-    G_dg5_dot(0:nSolPt+1) = (-1)**5*0.5*(P5_dot(0:nSolPt-1) - P4_dot(0:nSolPt-1))
-    G_ga4_dot(0:nSolPt+1) = 4.d0/(2.d0*3 +1.d0)  *G_dg4_dot(0:nSolPt+1) &
-                          + 3.d0/(2.d0*3.d0+1.d0)*G_dg3_dot(0:nSolPt+1) 
+    P4        = (35*xl**4 -30*xl**2 +3)/8
+    P2_dot    = 3*xl
+    P3_dot    = 0.5*(15*xl**2 -3)
+    P4_dot    = 0.5*xl*(35*xl**2 -15)
+    P5_dot    = (315*xl**4 -210*xl**2 +15)/8
+    G_dg3_dot = (-1)**3*0.5*(P3_dot - P2_dot)
+    G_dg4_dot = (-1)**4*0.5*(P4_dot - P3_dot)
+    G_dg5_dot = (-1)**5*0.5*(P5_dot - P4_dot)
+    G_ga4_dot = 4.d0/(2.d0*3 +1.d0)  *G_dg4_dot &
+              + 3.d0/(2.d0*3.d0+1.d0)*G_dg3_dot 
 
-    G_dotL = G_dg4_dot
-    !G_dotL = G_ga4_dot
+    if      (method.eq."DG") then ! DG method
+        G_dotL = G_dg4_dot
+    else if (method.eq."GA") then ! DG method
+        G_dotL = G_ga4_dot
+    else
+        write(*,*) "Error: unknown method"
+        stop
+    end if
+
     do i=0,nSolPt+1
         G_dotR(i) = - G_dotL(nSolPt+1-i)
     end do
-
-    open(10,file="G_dot",status="replace")
-    do i=0,nSolPt+1
-        write(10,*) xl(i),G_dotL(i),G_dotR(i)
-    end do
-    close(10)
 
     ! -----------------------------
     ! *** set derivative matrix ***
@@ -189,8 +201,8 @@ program main
     end do
     close(10)
 
-
     allocate( u_temp(1:nSolPt),x_temp(1:nSolPt),f_temp(1:nSolPt) )
+
 ! -------------------------
 ! *** Start Calculation ***
 ! -------------------------
@@ -286,7 +298,6 @@ program main
         end do
     end do
     close(10)
-
 
 end program main
 
