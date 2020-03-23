@@ -84,8 +84,8 @@ program main
         stop
     end if
 
-    nCell = 10
-    xmax  = 1.d0 ; xmin = 0.d0
+    nCell  = 10
+    xmax   = 1.d0 ; xmin = 0.d0
     nSolPt = 4  
 
     a   = 1.0 ! convecting velocity
@@ -101,7 +101,7 @@ program main
     allocate(f2_dot (nCell,0:nSolPt+1))
     allocate(f2_dotg(nCell,0:nSolPt+1))
 
-    allocate(RK_K(nCell,nSolPt,nRK))
+    allocate(RK_K   (nCell,nSolPt,nRK))
 
     ! -----------------------
     ! *** set gauss point ***
@@ -122,7 +122,7 @@ program main
     dx = (xmax - xmin)/nCell
     DT = CR*dx
     do iCell=1,nCell
-        cells(iCell)%nSolPt    = nSolPt
+        cells(iCell)%nSolPt = nSolPt
         cells(iCell)%center = dx/2 + (iCell-1)*dx
     end do
 
@@ -156,7 +156,7 @@ program main
 
     if      (method.eq."DG") then ! DG method
         G_dotL = G_dg4_dot
-    else if (method.eq."GA") then ! DG method
+    else if (method.eq."GA") then ! GA method
         G_dotL = G_ga4_dot
     else
         write(*,*) "Error: unknown method"
