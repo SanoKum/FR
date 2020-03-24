@@ -10,13 +10,14 @@ program main
     end type Cell
 
     ! parameter
-    integer :: nCell
-    integer :: nSolPt
-    real(8) :: DT
-    integer :: iSTEP , LastSTEP , outSTEP
-    real(8) :: a 
-    real(8) :: xmax , xmin , dx
-    real(8) :: Cr
+    character*2 :: method
+    integer     :: nCell
+    integer     :: nSolPt
+    real(8)     :: DT
+    integer     :: iSTEP , LastSTEP , outSTEP
+    real(8)     :: a 
+    real(8)     :: xmax , xmin , dx
+    real(8)     :: Cr
 
     ! mesh and variables
     type(Cell),allocatable :: cells(:)
@@ -62,23 +63,21 @@ program main
     real(8) :: val
     real(8) :: fupw
 
-    character*2 :: method
-
     ! -----------------------
     ! *** initial setting ***
     ! -----------------------
 
-    !method="DG"
-    method="GA"
+    method="DG"
+    !method="GA"
 
     if      (method.eq."DG") then ! DG method
+        Cr       = 0.09162 ! Courant Number
         !LastSTEP = 764     ! wave travels a distance of 10 periods
         LastSTEP = 764*5   ! wave travels a distance of 50 periods
-        Cr       = 0.09162 ! Courant Number
     else if (method.eq."GA") then
+        Cr       = 0.14285 ! Courant Number
         !LastSTEP = 490     ! wave travels a distance of 10 periods
         LastSTEP = 490*5   ! wave travels a distance of 50 periods
-        Cr       = 0.14285 ! Courant Number
     else
         write(*,*) "Error: unknown method"
         stop
@@ -190,7 +189,9 @@ program main
         end do
     end do
 
-    ! set initial value
+    ! -------------------------
+    ! *** set initial value ***
+    ! -------------------------
     open(10,file="initVal.dat",status="replace")
     do iCell=1,nCell
         do iSol=1,nSolPt
@@ -208,8 +209,9 @@ program main
 ! -------------------------
     do iSTEP=1,LastSTEP
         do iRK=1,nRK
-        ! set u(j+1/2,L) and u(j+1/2,R)
-        !     f(j+1/2,L) and f(j+1/2,R)
+        ! --------------------------------
+        ! *** set u and f at interface ***
+        ! --------------------------------
             do iCell=1,nCell
                 x_temp  (1:nSolPt) = xl (1:nSolPt)
                 u_temp  (1:nSolPt) = u  (iCell,1:nSolPt)
@@ -229,7 +231,9 @@ program main
                 if (iRK.eq.1) uN(iCell,0:nSolPt+1) = u(iCell,0:nSolPt+1)
             end do
 
-        ! set upwind flux at interface
+        ! ------------------------------------
+        ! *** set upwind flux at interface ***
+        ! ------------------------------------
             do iCell=1,nCell
                 if (iCell .eq. 1) then
                     fupw               = a*u(nCell,nSolPt+1)
@@ -244,14 +248,18 @@ program main
                 end if
             end do
 
-        ! calc derivative of discontinuout flux at the nSolPt solution points
+        ! ---------------------------------------------
+        ! *** calc derivative of discontinuout flux ***
+        ! ---------------------------------------------
             do iCell=1,nCell
                 do iSol=1,nSolPt
                     f1_dot(iCell,iSol) = dot_product(f1(iCell,1:nSolPt),D(iSol,1:nSolPt))
                 end do
             end do
 
-        ! calc continuous flux
+        ! ----------------------------
+        ! *** calc continuous flux ***
+        ! ----------------------------
             do iCell=1,nCell
                 diffL = f2(iCell,0)        - f1(iCell,0)
                 diffR = f2(iCell,nSolPt+1) - f1(iCell,nSolPt+1)
@@ -261,8 +269,10 @@ program main
                 f2_dotg(iCell,1:nSolPt)  = 2.d0/dx*f2_dot(iCell,1:nSolPt)
             end do
 
-        ! time advance
-        ! 4th order Runge-Kutta
+        ! -----------------------------
+        ! *** time advance          *** 
+        ! *** 4th order Runge-Kutta ***
+        ! -----------------------------
             do iCell=1,nCell
                 RK_K(iCell,1:nSolPt,iRK) = -f2_dotg(iCell,1:NSolPt)
 
@@ -290,7 +300,9 @@ program main
 
     end do
 
-    ! end value
+    ! ------------------------
+    ! *** output end value ***
+    ! ------------------------
     open(10,file="endVal.dat",status="replace")
     do iCell=1,nCell
         do iSol=1,nSolPt
