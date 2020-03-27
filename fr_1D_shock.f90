@@ -28,43 +28,6 @@ module lib4FR
 
     end subroutine lagrange_poly
 
-    subroutine calcA( rho, u, e, gam, A )
-        implicit none
-
-        real(8)             :: rho   , u , e , gam
-        real(8)             :: H     , p
-        real(8),intent(out) :: A(3,3)
-
-        p = (gam-1.0)*(e-(rho*u**2)*0.5)
-        H = (e + p)/rho
-
-        A(1,1) = 0.0 ; A(1,2) = 1.0 ; A(1,3) = 0.0
-        A(2,1) = (gam-3.0)*0.5*u**2 
-        A(2,2) =  (3.0-gam)*u
-        A(2,3) =  gam - 1.0
-        A(3,1) = ((gam-1.0)*0.5*u**2 - H)*u
-        A(3,2) = H - (gam-1.0)*u**2
-        A(3,3) = gam*u
-
-    end subroutine calcA
-
-    subroutine calcA2( rho, u, H, gam, A )
-        implicit none
-
-        real(8)             :: rho   , u , e , gam
-        real(8)             :: H     , p
-        real(8),intent(out) :: A(3,3)
-
-        A(1,1) = 0.0 ; A(1,2) = 1.0 ; A(1,3) = 0.0
-        A(2,1) = (gam-3.0)*0.5*u**2 
-        A(2,2) =  (3.0-gam)*u
-        A(2,3) =  gam - 1.0
-        A(3,1) = ((gam-1.0)*0.5*u**2 - H)*u
-        A(3,2) = H - (gam-1.0)*u**2
-        A(3,3) = gam*u
-
-    end subroutine calcA2
-
     subroutine calcE( Q, gam, E)
         implicit none
 
@@ -210,7 +173,7 @@ program main
     integer     :: nCell
     integer     :: nSolPt
     real(8)     :: DT
-    integer     :: iSTEP , LastSTEP , outSTEP
+    integer     :: iSTEP , LastSTEP 
     real(8)     :: xmax , xmin , dx
     real(8)     :: Cr   , umax
 
@@ -229,9 +192,6 @@ program main
     integer :: nRK ! runge kutta order
     real(8),allocatable :: RK_K(:,:,:,:) !iCell,iSol,k,equation
 
-    character*8  :: cstep
-    character*20 :: fname 
-
     ! temp value
     integer :: i    , iCell , iSol
     integer :: irow 
@@ -242,7 +202,6 @@ program main
     real(8) :: x_in
     real(8) :: val
     real(8) :: fupw   (3)
-    real(8) :: lambda (3,3)
     real(8) :: R      (3,3)
     real(8) :: R_inv  (3,3)
     real(8) :: Lm     (3,3)
@@ -253,7 +212,6 @@ program main
     real(8) :: eL , eR
     real(8) :: Q_L(3) , Q_R(3)
     real(8) :: E_L(3) , E_R(3)
-    real(8) :: v3(3)
 
     ! mesh and variables
     type(Cell),allocatable :: cells(:)
@@ -300,12 +258,8 @@ program main
 
     if      (method.eq."DG") then ! DG method
         Cr       = 0.09162 ! Courant Number
-        !LastSTEP = 764     ! wave travels a distance of 10 periods
-        LastSTEP = 764*5   ! wave travels a distance of 50 periods
     else if (method.eq."GA") then
         Cr       = 0.14285 ! Courant Number
-        !LastSTEP = 490     ! wave travels a distance of 10 periods
-        LastSTEP = 490*5   ! wave travels a distance of 50 periods
     else
         write(*,*) "Error: unknown method"
         stop
@@ -676,8 +630,6 @@ program main
         end do
     end do
     close(10)
-
-
 
 end program main
 
