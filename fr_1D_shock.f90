@@ -1,4 +1,4 @@
-! 1D convection using Flux Reconstruction Method 
+! 1D shock tube using Flux Reconstruction Method 
 ! coded by Kumpei Sano. 2020 03 27
 
 module lib4FR
