@@ -9,6 +9,7 @@ program main
         integer         :: nSolPt
     end type Cell
 
+
     ! parameter
     character*2 :: method
     integer     :: nCell
