@@ -10,6 +10,9 @@ replot 'endVal.dat' w l lc rgb "green" lw 2 title "Last"
 
 
 
+#sanooo
+
+
 #plot for[i=10:50:10] sprintf('Val_%06d.dat',i) using 1:2 with lp title sprintf("data %06d",i)
 #replot "initVal.dat" u 1:2 w lp
 
